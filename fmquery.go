@@ -263,7 +263,7 @@ func (q *FMQuery) maxSkipString() string {
 	if q.MaxRecords == fmAllRecords {
 		maxString = "-max=all"
 	} else {
-		maxString = "-max" + strconv.Itoa(q.MaxRecords)
+		maxString = "-max=" + strconv.Itoa(q.MaxRecords)
 	}
 
 	return "-skip=" + strconv.Itoa(q.SkipRecords) + "&" + maxString
