@@ -61,57 +61,6 @@ const (
 	FMDBnames = "-dbnames"
 )
 
-// func newFMURL(f *FMConnector, q *FMQuery) *url.URL {
-// 	var port string
-// 	if f.Port != "" {
-// 		port = ":" + f.Port
-// 	}
-// 	var fmURL = &url.URL{}
-// 	fmURL.Scheme = "http"
-// 	fmURL.Host = f.Host + port
-// 	fmURL.Path = fmiPath
-
-// 	query := fmURL.Query()
-// 	query.Set("-db", f.Database)
-// 	query.Set("-lay", q.Layout)
-// 	for k, v := range q.Query {
-// 		query.Set(k, v)
-// 	}
-// 	fmURL.RawQuery = query.Encode() + "&" + q.Action.String()
-
-// 	return fmURL
-// }
-
-// func (fmc *FMConnector) Request(q *FMQuery) (FMResultset, error) {
-// 	queryResultset := FMResultset{}
-// 	fmURL := newFMURL(fmc, q)
-
-// 	request, err := http.NewRequest("GET", fmURL.String(), nil)
-// 	if err != nil {
-// 		fmt.Printf("Error on creating request: %v\n", err)
-// 	}
-// 	request.Header.Set("User-Agent", "Gopher crossasia api v1")
-// 	request.SetBasicAuth(fmc.Username, fmc.Password)
-// 	//fmt.Println(request)
-// 	client := &http.Client{}
-// 	res, err := client.Do(request)
-// 	if err != nil {
-// 		return queryResultset, errors.New("Failed get response: " + err.Error())
-// 	}
-// 	defer res.Body.Close()
-
-// 	b, err := ioutil.ReadAll(res.Body)
-// 	if err != nil {
-// 		return queryResultset, errors.New("Failed parse response: " + err.Error())
-// 	}
-
-// 	uError := xml.Unmarshal(b, &queryResultset)
-// 	if uError != nil {
-// 		return queryResultset, errors.New("Unmarshal parse error: " + uError.Error())
-// 	}
-// 	return queryResultset, nil
-// }
-
 func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	resultSet := FMResultset{}
 	queryURL := fmc.makeURL(q)
