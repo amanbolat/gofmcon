@@ -45,7 +45,7 @@ func (r *Record) RelatedSetFromTable(t string) RelatedSet {
 	return rset
 }
 
-func (r *Record) DataFromFieldInex(fname string) string {
+func (r *Record) DataFromFieldIndex(fname string) string {
 	var s string
 	for _, elem := range r.Fields {
 		if strings.Contains(elem.FieldName, fname) {
