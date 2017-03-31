@@ -1,10 +1,8 @@
 package gofmcon
 
 import (
-	_ "encoding/json"
 	"encoding/xml"
 	"errors"
-	"fmt"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -46,12 +44,12 @@ func NewFMConnector(host string, port string, username string, password string) 
 	client := &http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
-		return newF, errors.New("Failed create new FMConnector: " + err.Error())
+		return newF, errors.New("gofmcon: " + err.Error())
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return newF, errors.New("Failed create new FMConnector with status: %v\n" + res.Status)
+		return newF, errors.New("gofmcon: failed connect fm server")
 	}
 
 	return newF, err
@@ -67,7 +65,7 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	request, err := http.NewRequest("GET", queryURL, nil)
 	if err != nil {
-		fmt.Printf("Error on creating request: %v\n", err)
+		return resultSet, errors.New("gofmcon: " + err.Error())
 	}
 	request.Header.Set("User-Agent", "Gopher crossasia api v1")
 	request.SetBasicAuth(fmc.Username, fmc.Password)
@@ -75,18 +73,18 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	client := &http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
-		return resultSet, errors.New("Failed get response: " + err.Error())
+		return resultSet, errors.New("gofmcon: " + err.Error())
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return resultSet, errors.New("Failed parse response: " + err.Error())
+		return resultSet, errors.New("gofmcon: " + err.Error())
 	}
 
 	err = xml.Unmarshal(b, &resultSet)
 	if err != nil {
-		return resultSet, errors.New("Unmarshal parse error: " + err.Error())
+		return resultSet, errors.New("gofmcon: " + err.Error())
 	}
 	return resultSet, nil
 }
@@ -99,6 +97,5 @@ func (fmc *FMConnector) makeURL(q *FMQuery) string {
 		newURL.Host += ":" + fmc.Port
 	}
 	newURL.Path = fmiPath
-	fmt.Printf("%v\n", newURL.String() + "?" + q.QueryString())
 	return newURL.String() + "?" + q.QueryString()
 }
