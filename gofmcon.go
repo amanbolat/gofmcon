@@ -10,6 +10,7 @@ import (
 
 const (
 	fmiPath = "fmi/xml/fmresultset.xml"
+	FMDBnames = "-dbnames"
 )
 
 type FMConnector struct {
@@ -19,45 +20,42 @@ type FMConnector struct {
 	Password string
 }
 
-func NewFMConnector(host string, port string, username string, password string) (*FMConnector, error) {
-	newF := &FMConnector{
+func NewFMConnector(host string, port string, username string, password string) *FMConnector {
+	newConn := &FMConnector{
 		host,
 		port,
 		username,
 		password,
 	}
 
+	return newConn
+}
+
+func (fmc *FMConnector) Ping() error {
 	var newURL = &url.URL{}
 	newURL.Scheme = "http"
-	newURL.Host = host
-	if port != "" {
-		newURL.Host += ":" + port
-	}
+	newURL.Host = fmc.Host
 	newURL.Path = fmiPath
 	newURL.RawQuery = newURL.Query().Encode() + "&" + FMDBnames
 	request, err := http.NewRequest("GET", newURL.String(), nil)
 	if err != nil {
-		return newF, err
+		return err
 	}
-	request.SetBasicAuth(username, password)
-	request.Header.Set("User-Agent", "Gopher crossasia api v1")
+	request.SetBasicAuth(fmc.Username, fmc.Password)
+	request.Header.Set("User-Agent", "Golang FileMaker Connector")
 	client := &http.Client{}
 	res, err := client.Do(request)
 	if err != nil {
-		return newF, errors.New("gofmcon: " + err.Error())
+		return err
 	}
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return newF, errors.New("gofmcon: failed connect fm server")
+		return  errors.New("failed ping filemaker server")
 	}
 
-	return newF, err
+	return nil
 }
-
-const (
-	FMDBnames = "-dbnames"
-)
 
 func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	resultSet := FMResultset{}
