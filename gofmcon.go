@@ -18,6 +18,7 @@ type FMConnector struct {
 	Port     string
 	Username string
 	Password string
+	Client *http.Client
 }
 
 func NewFMConnector(host string, port string, username string, password string) *FMConnector {
@@ -26,6 +27,7 @@ func NewFMConnector(host string, port string, username string, password string) 
 		port,
 		username,
 		password,
+		http.DefaultClient,
 	}
 
 	return newConn
@@ -68,8 +70,11 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	request.Header.Set("User-Agent", "Gopher crossasia api v1")
 	request.SetBasicAuth(fmc.Username, fmc.Password)
 
-	client := &http.Client{}
-	res, err := client.Do(request)
+	if fmc.Client == nil {
+		fmc.Client = http.DefaultClient
+	}
+
+	res, err := fmc.Client.Do(request)
 	if err != nil {
 		return resultSet, errors.New("gofmcon: " + err.Error())
 	}
