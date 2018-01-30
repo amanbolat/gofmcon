@@ -36,19 +36,20 @@ type Field struct {
 }
 
 func (r *Record) RelatedSetFromTable(t string) RelatedSet {
-	rset := RelatedSet{}
+	rSet := RelatedSet{}
 	for _, elem := range r.RelatedSet {
 		if elem.Table == t {
-			rset = elem
+			rSet = elem
 		}
 	}
-	return rset
+	return rSet
 }
 
-func (r *Record) DataFromFieldIndex(fname string) string {
+// Field returns field data if exists
+func (r *Record) Field(name string) string {
 	var s string
 	for _, elem := range r.Fields {
-		if strings.Contains(elem.FieldName, fname) {
+		if strings.Contains(elem.FieldName, name) {
 			s = elem.FieldData
 		}
 	}

@@ -23,10 +23,6 @@ const (
 	Duplicate FMAction = "-dup"
 )
 
-// func getStr(a interface{}) string {
-// 	// return reflect.ValueOf(a)
-// }
-
 func (a FMAction) String() string {
 	return string(a)
 }

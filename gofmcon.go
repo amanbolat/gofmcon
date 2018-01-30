@@ -2,7 +2,7 @@ package gofmcon
 
 import (
 	"encoding/xml"
-	"errors"
+	"github.com/pkg/errors"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -53,7 +53,7 @@ func (fmc *FMConnector) Ping() error {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return  errors.New("failed ping filemaker server")
+		return  errors.New("failed ping FileMaker server")
 	}
 
 	return nil
@@ -65,9 +65,9 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	request, err := http.NewRequest("GET", queryURL, nil)
 	if err != nil {
-		return resultSet, errors.New("gofmcon: " + err.Error())
+		return resultSet, errors.WithMessage(err, "gofmcon: create request failed")
 	}
-	request.Header.Set("User-Agent", "Gopher crossasia api v1")
+	request.Header.Set("User-Agent", "Golang FileMaker Connector")
 	request.SetBasicAuth(fmc.Username, fmc.Password)
 
 	if fmc.Client == nil {
@@ -76,18 +76,18 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	res, err := fmc.Client.Do(request)
 	if err != nil {
-		return resultSet, errors.New("gofmcon: " + err.Error())
+		return resultSet, errors.WithMessage(err, "gofmcon: http request failed")
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return resultSet, errors.New("gofmcon: " + err.Error())
+		return resultSet, errors.WithMessage(err, "gofmcon: failed read response body")
 	}
 
 	err = xml.Unmarshal(b, &resultSet)
 	if err != nil {
-		return resultSet, errors.New("gofmcon: " + err.Error())
+		return resultSet, errors.WithMessage(err, "gofmcon: failed xml unmarshal")
 	}
 	return resultSet, nil
 }

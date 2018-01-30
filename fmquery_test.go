@@ -2,6 +2,7 @@ package gofmcon
 
 import (
 	"testing"
+	"github.com/stretchr/testify/assert"
 )
 
 
@@ -19,3 +20,4 @@ func TestFieldsCount(t *testing.T) {
 		t.Error(`FMquery fieldsCount is not correct`)
 	}
 }
+
