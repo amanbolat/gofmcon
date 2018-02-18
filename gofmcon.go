@@ -9,8 +9,8 @@ import (
 )
 
 const (
-	fmiPath = "fmi/xml/fmresultset.xml"
-	FMDBnames = "-dbnames"
+	fmiPath   = "fmi/xml/fmresultset.xml"
+	FMDBNames = "-dbnames"
 )
 
 type FMConnector struct {
@@ -38,10 +38,10 @@ func (fmc *FMConnector) Ping() error {
 	newURL.Scheme = "http"
 	newURL.Host = fmc.Host
 	newURL.Path = fmiPath
-	newURL.RawQuery = newURL.Query().Encode() + "&" + FMDBnames
+	newURL.RawQuery = newURL.Query().Encode() + "&" + FMDBNames
 	request, err := http.NewRequest("GET", newURL.String(), nil)
 	if err != nil {
-		return err
+		return errors.WithMessage(err, "gofmcon.Ping: error create request")
 	}
 	request.SetBasicAuth(fmc.Username, fmc.Password)
 	request.Header.Set("User-Agent", "Golang FileMaker Connector")
@@ -53,7 +53,7 @@ func (fmc *FMConnector) Ping() error {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return  errors.New("failed ping FileMaker server")
+		return  errors.New("gofmcon.Ping: FileMaker server unreachable")
 	}
 
 	return nil
@@ -65,7 +65,7 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	request, err := http.NewRequest("GET", queryURL, nil)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon: create request failed")
+		return resultSet, errors.WithMessage(err, "gofmcon.Query: error create request")
 	}
 	request.Header.Set("User-Agent", "Golang FileMaker Connector")
 	request.SetBasicAuth(fmc.Username, fmc.Password)
@@ -76,18 +76,18 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	res, err := fmc.Client.Do(request)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon: http request failed")
+		return resultSet, errors.WithMessage(err, "gofmcon.Query: error http request")
 	}
 	defer res.Body.Close()
 
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon: failed read response body")
+		return resultSet, errors.WithMessage(err, "gofmcon.Query: error read response body")
 	}
 
 	err = xml.Unmarshal(b, &resultSet)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon: failed xml unmarshal")
+		return resultSet, errors.WithMessage(err, "gofmcon.Query: error unmarshal xml")
 	}
 	return resultSet, nil
 }
