@@ -1,15 +1,14 @@
 package gofmcon
 
 import (
-	"strings"
 	"fmt"
 )
 
 type FMResultset struct {
-	Resultset Resultset `xml:"resultset"`
-	DataSource DataSource `xml:"datasource"`
-	Version   string    `xml:"version,attr"`
-	FMError   FMError	`xml:"error"`
+	Resultset  *Resultset  `xml:"resultset"`
+	DataSource *DataSource `xml:"datasource"`
+	Version    string     `xml:"version,attr"`
+	FMError    FMError    `xml:"error"`
 }
 
 func (rs *FMResultset) HasError() bool {
@@ -17,13 +16,13 @@ func (rs *FMResultset) HasError() bool {
 }
 
 type DataSource struct {
-	Database string `xml:"database"`
-	DateFormat string `xml:"date_format"`
-	Layout string `xml:"layout"`
-	Table string `xml:"table"`
-	TimeFormat string `xml:"time-format"`
+	Database        string `xml:"database"`
+	DateFormat      string `xml:"date_format"`
+	Layout          string `xml:"layout"`
+	Table           string `xml:"table"`
+	TimeFormat      string `xml:"time-format"`
 	TimestampFormat string `xml:"timestamp-format"`
-	TotalCount int `xml:"total-count"`
+	TotalCount      int    `xml:"total-count"`
 }
 
 type FMError struct {
@@ -41,19 +40,43 @@ func (e *FMError) Error() string {
 type Resultset struct {
 	Count   int      `xml:"count,attr" json:"count"`
 	Fetched int      `xml:"fetch-size,attr" json:"fetched"`
-	Records []Record `xml:"record"`
+	Records []*Record `xml:"record"`
 }
 
 type Record struct {
 	ID         int          `xml:"record-id,attr"`
-	Fields     []Field      `xml:"field"`
-	RelatedSet []RelatedSet `xml:"relatedset"`
+	Fields     []*Field      `xml:"field"`
+	fieldsMap  map[string]string
+	RelatedSet []*RelatedSet `xml:"relatedset"`
 }
 
 type RelatedSet struct {
 	Count   int      `xml:"count,attr"`
 	Table   string   `xml:"table,attr"`
-	Records []Record `xml:"record"`
+	Records []*Record `xml:"record"`
+}
+
+func (rs *Resultset) prepareRecords() {
+	for _, r := range rs.Records {
+		r.makeFieldsMap()
+	}
+}
+
+func (r *Record) makeFieldsMap() {
+	if r.fieldsMap == nil {
+		r.fieldsMap = map[string]string{}
+		fmt.Println("NIL MAP")
+	}
+	for _, f := range r.Fields {
+		fmt.Printf("K %s V %s", f.FieldName, f.FieldData)
+		r.fieldsMap[f.FieldName] = f.FieldData
+	}
+
+	for _, rs := range r.RelatedSet {
+		for _, rr := range rs.Records {
+			rr.makeFieldsMap()
+		}
+	}
 }
 
 type Field struct {
@@ -61,8 +84,8 @@ type Field struct {
 	FieldData string `xml:"data" json:"fieldData"`
 }
 
-func (r *Record) RelatedSetFromTable(t string) RelatedSet {
-	rSet := RelatedSet{}
+func (r *Record) RelatedSetFromTable(t string) *RelatedSet {
+	rSet := &RelatedSet{}
 	for _, elem := range r.RelatedSet {
 		if elem.Table == t {
 			rSet = elem
@@ -73,19 +96,5 @@ func (r *Record) RelatedSetFromTable(t string) RelatedSet {
 
 // Field returns field data if exists
 func (r *Record) Field(name string) string {
-	var s string
-	for _, elem := range r.Fields {
-		if strings.Contains(elem.FieldName, name) {
-			s = elem.FieldData
-		}
-	}
-	return s
-}
-
-func (r *Record) ToMap() map[string]string {
-	fMap := make(map[string]string)
-	for _, f := range r.Fields {
-		fMap[f.FieldName] = f.FieldData
-	}
-	return fMap
+	return r.fieldsMap[name]
 }

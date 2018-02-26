@@ -94,6 +94,8 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 		return resultSet, errors.New(resultSet.FMError.String())
 	}
 
+	resultSet.Resultset.prepareRecords()
+
 	return resultSet, nil
 }
 

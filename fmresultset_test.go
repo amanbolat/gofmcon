@@ -1,4 +1,4 @@
-package gofmcon_test
+package gofmcon
 
 import (
 	"testing"
@@ -6,8 +6,6 @@ import (
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
 	"encoding/xml"
-	"bitbucket.org/amanbolat/gofmcon"
-	"fmt"
 )
 
 func TestFMResultsetXMLUnmarshal(t *testing.T) {
@@ -17,9 +15,7 @@ func TestFMResultsetXMLUnmarshal(t *testing.T) {
 	b, err := ioutil.ReadAll(testFile)
 	assert.NoError(t, err)
 
-	fmResultSet := &gofmcon.FMResultset{}
+	fmResultSet := &FMResultset{}
 	err = xml.Unmarshal(b, fmResultSet)
 	assert.NoError(t, err)
-
-	fmt.Printf("%+v", fmResultSet)
 }
