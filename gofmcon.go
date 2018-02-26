@@ -89,6 +89,11 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	if err != nil {
 		return resultSet, errors.WithMessage(err, "gofmcon.Query: error unmarshal xml")
 	}
+
+	if resultSet.HasError() {
+		return resultSet, errors.New(resultSet.FMError.String())
+	}
+
 	return resultSet, nil
 }
 

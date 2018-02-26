@@ -16,8 +16,6 @@ func TestFieldsCount(t *testing.T) {
 	}
 
 	q := FMQuery{ QueryFields: a}
-	if q.fieldsCount() != 15 {
-		t.Error(`FMquery fieldsCount is not correct`)
-	}
+	assert.Equal(t, 15, q.fieldsCount(), "FMquery fieldsCount is not correct")
 }
 

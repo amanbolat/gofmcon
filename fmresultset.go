@@ -1,15 +1,41 @@
 package gofmcon
 
-import "strings"
+import (
+	"strings"
+	"fmt"
+)
 
 type FMResultset struct {
 	Resultset Resultset `xml:"resultset"`
+	DataSource DataSource `xml:"datasource"`
 	Version   string    `xml:"version,attr"`
-	FMError   FMError
+	FMError   FMError	`xml:"error"`
+}
+
+func (rs *FMResultset) HasError() bool {
+	return rs.FMError.Code != 0
+}
+
+type DataSource struct {
+	Database string `xml:"database"`
+	DateFormat string `xml:"date_format"`
+	Layout string `xml:"layout"`
+	Table string `xml:"table"`
+	TimeFormat string `xml:"time-format"`
+	TimestampFormat string `xml:"timestamp-format"`
+	TotalCount int `xml:"total-count"`
 }
 
 type FMError struct {
 	Code int `xml:"code,attr"`
+}
+
+func (e *FMError) String() string {
+	return fmt.Sprintf("code: %d error: %s", e.Code, FileMakerErrorCodes[e.Code])
+}
+
+func (e *FMError) Error() string {
+	return fmt.Sprintf("FileMaker error: %s", FileMakerErrorCodes[e.Code])
 }
 
 type Resultset struct {
