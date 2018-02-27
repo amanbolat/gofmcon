@@ -65,10 +65,8 @@ func (rs *Resultset) prepareRecords() {
 func (r *Record) makeFieldsMap() {
 	if r.fieldsMap == nil {
 		r.fieldsMap = map[string]string{}
-		fmt.Println("NIL MAP")
 	}
 	for _, f := range r.Fields {
-		fmt.Printf("K %s V %s", f.FieldName, f.FieldData)
 		r.fieldsMap[f.FieldName] = f.FieldData
 	}
 
