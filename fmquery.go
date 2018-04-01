@@ -83,7 +83,7 @@ func (qf *FMQueryField) ValueWithOp() string {
 	case LessThanEqual:
 		return "<=" + qf.Value
 	default:
-		return "==" + qf.Value + "*"
+		return qf.Value
 	}
 }
 
