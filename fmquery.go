@@ -4,6 +4,7 @@ import (
 	"net/url"
 	"strconv"
 	"strings"
+	"fmt"
 )
 
 const (
@@ -296,7 +297,7 @@ func (q *FMQuery) compoundQueryString() string {
 			var fieldsArray []string
 			for range g.Fields {
 				i++
-				str := "q" + strconv.Itoa(i)
+				str := fmt.Sprintf("q%d", i)
 				fieldsArray = append(fieldsArray, str)
 			}
 			str := "(" + strings.Join(fieldsArray, ",") + ")"
@@ -305,7 +306,7 @@ func (q *FMQuery) compoundQueryString() string {
 			var fieldsArray []string
 			for range g.Fields {
 				i++
-				str := "q" + strconv.Itoa(i)
+				str := fmt.Sprintf("(q%d)", i)
 				fieldsArray = append(fieldsArray, str)
 			}
 			str := strings.Join(fieldsArray, ";")
@@ -314,7 +315,7 @@ func (q *FMQuery) compoundQueryString() string {
 			var fieldsArray []string
 			for range g.Fields {
 				i++
-				str := "q" + strconv.Itoa(i)
+				str := fmt.Sprintf("q%d", i)
 				fieldsArray = append(fieldsArray, str)
 			}
 			str := "!(" + strings.Join(fieldsArray, ",") + ")"
