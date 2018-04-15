@@ -36,8 +36,8 @@ const (
 	Custom     FMSortOrder = "custom"
 )
 
-func (so *FMSortOrder) String() string {
-	return so.String()
+func (so FMSortOrder) String() string {
+	return string(so)
 }
 
 type FMSortField struct {
