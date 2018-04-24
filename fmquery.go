@@ -118,6 +118,8 @@ type FMQuery struct {
 	PreSortScripts  []string
 	PreFindScripts  []string
 	PostFindScripts []string
+	ScriptParams []string
+	ScriptParamsDelimiter string
 	ResponseLayout  string
 	ResponseFields  []string
 	MaxRecords      int // default should be -1
@@ -172,6 +174,12 @@ func (q *FMQuery) WithPreFindScripts(scripts ...string) *FMQuery {
 
 func (q *FMQuery) WithPostFindScripts(scripts ...string) *FMQuery {
 	q.PostFindScripts = append(q.PostFindScripts, scripts...)
+	return q
+}
+
+func (q *FMQuery) WithScriptParams(delimiter string, params ...string) *FMQuery {
+	q.ScriptParams = append(q.ScriptParams, params...)
+	q.ScriptParamsDelimiter = delimiter
 	return q
 }
 
@@ -253,6 +261,15 @@ func (q *FMQuery) scriptsString() string {
 	return WithAmp(strings.Join(preSortsArray, "&")) +
 		WithAmp(strings.Join(preFindsArray, "&")) +
 		strings.Join(postFinds, "&")
+}
+
+func (q *FMQuery) scriptParamsString() string {
+	if len(q.ScriptParams) < 1 {
+		return ""
+	}
+	baseStr := "–script.param=" // –script.param=&-script.param=Smith%7CChatterjee%7CSu  %7C = |
+	params := strings.Join(q.ScriptParams, q.ScriptParamsDelimiter)
+	return baseStr + url.QueryEscape(params)
 }
 
 func (q *FMQuery) maxSkipString() string {
@@ -341,7 +358,7 @@ func (q *FMQuery) compoundFieldsString() string {
 }
 
 func (q *FMQuery) QueryString() string {
-	var startString = q.dbLayString() + WithAmp(q.scriptsString()) + WithAmp(q.ResponseLayout)
+	var startString = q.dbLayString() + WithAmp(q.scriptsString()) + WithAmp(q.ResponseLayout) + WithAmp(q.scriptParamsString())
 	switch q.Action {
 	case Delete, Duplicate:
 		return startString +
