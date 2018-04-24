@@ -267,7 +267,7 @@ func (q *FMQuery) scriptParamsString() string {
 	if len(q.ScriptParams) < 1 {
 		return ""
 	}
-	baseStr := "-script.param"
+	baseStr := "-script.param="
 	params := strings.Join(q.ScriptParams, q.ScriptParamsDelimiter)
 	return baseStr + url.QueryEscape(params)
 }
