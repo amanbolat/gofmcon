@@ -267,7 +267,7 @@ func (q *FMQuery) scriptParamsString() string {
 	if len(q.ScriptParams) < 1 {
 		return ""
 	}
-	baseStr := "–script.param=" // –script.param=&-script.param=Smith%7CChatterjee%7CSu  %7C = |
+	baseStr := "-script.param"
 	params := strings.Join(q.ScriptParams, q.ScriptParamsDelimiter)
 	return baseStr + url.QueryEscape(params)
 }
@@ -358,7 +358,7 @@ func (q *FMQuery) compoundFieldsString() string {
 }
 
 func (q *FMQuery) QueryString() string {
-	var startString = q.dbLayString() + WithAmp(q.scriptsString()) + WithAmp(q.ResponseLayout) + WithAmp(q.scriptParamsString())
+	var startString = q.dbLayString() + WithAmp(q.scriptsString()) + WithAmp(q.scriptParamsString()) + WithAmp(q.ResponseLayout)
 	switch q.Action {
 	case Delete, Duplicate:
 		return startString +
