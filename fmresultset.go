@@ -46,7 +46,7 @@ type Resultset struct {
 type Record struct {
 	ID         int          `xml:"record-id,attr"`
 	Fields     []*Field      `xml:"field"`
-	fieldsMap  map[string]string
+	fieldsMap  map[string][]string
 	RelatedSet []*RelatedSet `xml:"relatedset"`
 }
 
@@ -64,7 +64,7 @@ func (rs *Resultset) prepareRecords() {
 
 func (r *Record) makeFieldsMap() {
 	if r.fieldsMap == nil {
-		r.fieldsMap = map[string]string{}
+		r.fieldsMap = map[string][]string{}
 	}
 	for _, f := range r.Fields {
 		r.fieldsMap[f.FieldName] = f.FieldData
@@ -79,7 +79,7 @@ func (r *Record) makeFieldsMap() {
 
 type Field struct {
 	FieldName string `xml:"name,attr" json:"fieldName"`
-	FieldData string `xml:"data" json:"fieldData"`
+	FieldData []string `xml:"data" json:"fieldData"`
 }
 
 func (r *Record) RelatedSetFromTable(t string) *RelatedSet {
@@ -92,7 +92,16 @@ func (r *Record) RelatedSetFromTable(t string) *RelatedSet {
 	return rSet
 }
 
-// Field returns field data if exists
+// Field returns fields first data if exists
 func (r *Record) Field(name string) string {
+	f := r.fieldsMap[name]
+	if len(f) < 1{
+		return ""
+	}
+	return f[0]
+}
+
+// ContainerField returns all data of container field
+func (r *Record) ContainerField(name string) []string {
 	return r.fieldsMap[name]
 }

@@ -12,6 +12,12 @@
             <field name="full_name">
                 <data>John Smith</data>
             </field>
+            <field name="container">
+                <data>/fmi/xml/cnt/%E7%85%A7%E7%89%87%2002-05-2018%2015.45.31.jpg?-db=crossasia_erp_test&amp;-lay=transfer_shipment_single&amp;-recid=4565&amp;-field=Container(1)</data>
+                <data>/fmi/xml/cnt/%E7%85%A7%E7%89%87%2030-04-2018%2014.53.15.jpg?-db=crossasia_erp_test&amp;-lay=transfer_shipment_single&amp;-recid=4565&amp;-field=Container(2)</data>
+                <data></data>
+                <data></data>
+            </field>
             <relatedset count="1" table="profile">
                 <record mod-id="6" record-id="248">
                     <field name="profile::email">
