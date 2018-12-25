@@ -1,4 +1,4 @@
-##Filemaker Server connector for golang
+## Filemaker Server connector for golang
 This library provide access to Filemaker Server using XML Web publishing
 
 **It's mirror of repo on Bitbucket!** 
