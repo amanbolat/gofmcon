@@ -1,8 +1,6 @@
 ## Filemaker Server connector for golang
 This library provide access to Filemaker Server using XML Web publishing
 
-**It's mirror of repo on Bitbucket!** 
-
 This library is a port of https://github.com/PerfectlySoft/Perfect-FileMaker, but in golang.
 
 ## In Production
@@ -18,11 +16,11 @@ If you have any ideas, open new issue or contact me.
 ## Install
 
 ```
-go get bitbucket.org/amanbolat/gofmcon
+go get github.com/amanbolat/gofmcon
 ```
 then in your code 
 ```go
-import "bitbucket.org/amanbolat/gofmcon"
+import "github.com/amanbolat/gofmcon"
 ```
 
 ## Example
@@ -33,7 +31,7 @@ In main.go
 package main
 
 import (
-    fm "bitbucket.org/amanbolat/gofmcon"
+    fm "github.com/amanbolat/gofmcon"
     "log"
     "github.com/kelseyhightower/envconfig"
     "fmt"
