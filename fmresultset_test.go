@@ -1,11 +1,11 @@
 package gofmcon
 
 import (
-	"testing"
-	"os"
+	"encoding/xml"
 	"github.com/stretchr/testify/assert"
 	"io/ioutil"
-	"encoding/xml"
+	"os"
+	"testing"
 )
 
 func TestFMResultsetXMLUnmarshal(t *testing.T) {

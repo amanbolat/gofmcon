@@ -1,10 +1,10 @@
 package gofmcon
 
 import (
+	"fmt"
 	"net/url"
 	"strconv"
 	"strings"
-	"fmt"
 )
 
 const (
@@ -64,7 +64,7 @@ type FMQueryField struct {
 	Op    FMFieldOp
 }
 
-func (qf *FMQueryField) ValueWithOp() string {
+func (qf *FMQueryField) valueWithOp() string {
 	switch qf.Op {
 	case Equal:
 		return "==" + qf.Value
@@ -100,7 +100,7 @@ type FMQueryFieldGroup struct {
 	Fields []FMQueryField
 }
 
-func (fg *FMQueryFieldGroup) SimpleFieldsString() string {
+func (fg *FMQueryFieldGroup) simpleFieldsString() string {
 	var strArray []string
 	for _, f := range fg.Fields {
 		strArray = append(strArray, url.QueryEscape(f.Name)+"="+url.QueryEscape(f.Value))
@@ -109,22 +109,22 @@ func (fg *FMQueryFieldGroup) SimpleFieldsString() string {
 }
 
 type FMQuery struct {
-	Database        string
-	Layout          string
-	Action          FMAction
-	QueryFields     []FMQueryFieldGroup
-	SortFields      []FMSortField
-	RecordId        int // default should be -1
-	PreSortScripts  []string
-	PreFindScripts  []string
-	PostFindScripts []string
-	ScriptParams []string
+	Database              string
+	Layout                string
+	Action                FMAction
+	QueryFields           []FMQueryFieldGroup
+	SortFields            []FMSortField
+	RecordId              int // default should be -1
+	PreSortScripts        []string
+	PreFindScripts        []string
+	PostFindScripts       []string
+	ScriptParams          []string
 	ScriptParamsDelimiter string
-	ResponseLayout  string
-	ResponseFields  []string
-	MaxRecords      int // default should be -1
-	SkipRecords     int // default should be 0
-	Query           map[string]string
+	ResponseLayout        string
+	ResponseFields        []string
+	MaxRecords            int // default should be -1
+	SkipRecords           int // default should be 0
+	Query                 map[string]string
 }
 
 func NewFMQuery(database string, layout string, action FMAction) *FMQuery {
@@ -203,7 +203,7 @@ func (q *FMQuery) WithSkipRecords(skip int) *FMQuery {
 	return q
 }
 
-func WithAmp(s string) string {
+func withAmp(s string) string {
 	if s == "" {
 		return ""
 	}
@@ -258,8 +258,8 @@ func (q *FMQuery) scriptsString() string {
 	for _, s := range q.PostFindScripts {
 		postFinds = append(postFinds, "-script="+url.QueryEscape(s))
 	}
-	return WithAmp(strings.Join(preSortsArray, "&")) +
-		WithAmp(strings.Join(preFindsArray, "&")) +
+	return withAmp(strings.Join(preSortsArray, "&")) +
+		withAmp(strings.Join(preFindsArray, "&")) +
 		strings.Join(postFinds, "&")
 }
 
@@ -283,7 +283,7 @@ func (q *FMQuery) maxSkipString() string {
 	return "-skip=" + strconv.Itoa(q.SkipRecords) + "&" + maxString
 }
 
-func (q *FMQuery) recidString() string {
+func (q *FMQuery) recordIdString() string {
 	if q.RecordId != fmNoRecordId && q.Action != FindAny {
 		return "-recid=" + strconv.Itoa(q.RecordId)
 	}
@@ -300,7 +300,7 @@ func (q *FMQuery) responseLayoutString() string {
 func (q *FMQuery) simpleFieldsString() string {
 	var strArray []string
 	for _, f := range q.QueryFields {
-		strArray = append(strArray, f.SimpleFieldsString())
+		strArray = append(strArray, f.simpleFieldsString())
 	}
 	return strings.Join(strArray, "&")
 }
@@ -349,7 +349,7 @@ func (q *FMQuery) compoundFieldsString() string {
 		var strArray []string
 		for _, f := range g.Fields {
 			i++
-			str := "-q" + strconv.Itoa(i) + "=" + url.QueryEscape(f.Name) + "&-q" + strconv.Itoa(i) + ".value=" + url.QueryEscape(f.ValueWithOp())
+			str := "-q" + strconv.Itoa(i) + "=" + url.QueryEscape(f.Name) + "&-q" + strconv.Itoa(i) + ".value=" + url.QueryEscape(f.valueWithOp())
 			strArray = append(strArray, str)
 		}
 		segments = append(segments, strings.Join(strArray, "&"))
@@ -358,39 +358,39 @@ func (q *FMQuery) compoundFieldsString() string {
 }
 
 func (q *FMQuery) QueryString() string {
-	var startString = q.dbLayString() + WithAmp(q.scriptsString()) + WithAmp(q.scriptParamsString()) + WithAmp(q.ResponseLayout)
+	var startString = q.dbLayString() + withAmp(q.scriptsString()) + withAmp(q.scriptParamsString()) + withAmp(q.ResponseLayout)
 	switch q.Action {
 	case Delete, Duplicate:
 		return startString +
-			WithAmp(q.recidString()) +
+			withAmp(q.recordIdString()) +
 			q.Action.String()
 	case Edit:
 		return startString +
-			WithAmp(q.recidString()) +
-			WithAmp(q.simpleFieldsString()) +
+			withAmp(q.recordIdString()) +
+			withAmp(q.simpleFieldsString()) +
 			q.Action.String()
 	case New:
 		return startString +
-			WithAmp(q.simpleFieldsString()) +
+			withAmp(q.simpleFieldsString()) +
 			q.Action.String()
 	case FindAny:
 		return startString +
 			q.Action.String()
 	case FindAll:
 		return startString +
-			WithAmp(q.sortFieldsString()) +
-			WithAmp(q.maxSkipString()) +
+			withAmp(q.sortFieldsString()) +
+			withAmp(q.maxSkipString()) +
 			q.Action.String()
 	case Find:
 		if q.RecordId != fmNoRecordId {
 			return startString +
-				WithAmp(q.recidString()) + "-find"
+				withAmp(q.recordIdString()) + "-find"
 		}
 		return startString +
-			WithAmp(q.sortFieldsString()) +
-			WithAmp(q.maxSkipString()) +
-			WithAmp(q.compoundQueryString()) +
-			WithAmp(q.compoundFieldsString()) +
+			withAmp(q.sortFieldsString()) +
+			withAmp(q.maxSkipString()) +
+			withAmp(q.compoundQueryString()) +
+			withAmp(q.compoundFieldsString()) +
 			q.Action.String()
 	default:
 		return ""

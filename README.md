@@ -1,5 +1,7 @@
-## Filemaker Server connector for golang
-This library provide access to Filemaker Server using XML Web publishing
+[![Go Report Card](https://goreportcard.com/badge/github.com/amanbolat/gofmcon)](https://goreportcard.com/report/github.com/amanbolat/gofmcon)
+
+## FileMaker Server connector for golang
+This library provide access to FileMaker Server using XML Web publishing
 
 This library is a port of https://github.com/PerfectlySoft/Perfect-FileMaker, but in golang.
 
@@ -109,11 +111,11 @@ func (ps *postStore) GetAllPosts(conn *fm.FMConnector) (*[]Post, error) {
     ).WithMaxRecords(1)
 ```
 
-### Get filemaker error
+### Get FileMaker error
 ```go
     fmSet, err := r.conn.Query(q)
     if err != nil {
-        if err.Error() == fmt.Sprintf("filemaker_error: %s", fm.FileMakerErrorCodes[401]) {
+        if err.Error() == fmt.Sprintf("FileMaker_error: %s", fm.FileMakerErrorCodes[401]) {
             // your code
         }
     
@@ -169,4 +171,3 @@ You should use `ContainerField` method to get slice of container field urls(imag
 
 - [ ] Add tests
 - [ ] Add methods to get information about database and layouts
-- [ ] Add documentation 

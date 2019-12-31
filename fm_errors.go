@@ -1,6 +1,6 @@
 package gofmcon
 
-var FileMakerErrorCodes = map[int]string{
+var fileMakerErrorCodes = map[int]string{
 	-1: "Unknown error",
 	0: "No error",
 	1: "User canceled action",
