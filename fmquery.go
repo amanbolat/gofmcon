@@ -254,7 +254,7 @@ func (q *FMQuery) scriptsString() string {
 	if q.PreFindScript != "" {
 		preFind = "-script.prefind="+url.QueryEscape(q.PreFindScript)
 	}
-	var postFind
+	var postFind string
 	if q.PostFindScript != "" {
 		postFind = "-script="+url.QueryEscape(q.PostFindScript)
 	}
