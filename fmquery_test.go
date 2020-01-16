@@ -21,7 +21,7 @@ func TestFieldsCount(t *testing.T) {
 func TestFMQuery_QueryString(t *testing.T) {
 	q := NewFMQuery("db", "layout", Edit)
 
-	q.WithScriptParams("|", "hello", "world")
+	q.PostFindScriptParams("|", "hello", "world")
 	q.WithPostFindScripts("audit_log")
 	t.Log(q.QueryString())
 }

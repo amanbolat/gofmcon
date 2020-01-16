@@ -109,22 +109,23 @@ func (fg *FMQueryFieldGroup) simpleFieldsString() string {
 }
 
 type FMQuery struct {
-	Database              string
-	Layout                string
-	Action                FMAction
-	QueryFields           []FMQueryFieldGroup
-	SortFields            []FMSortField
-	RecordId              int // default should be -1
-	PreSortScripts        []string
-	PreFindScripts        []string
-	PostFindScripts       []string
-	ScriptParams          []string
-	ScriptParamsDelimiter string
-	ResponseLayout        string
-	ResponseFields        []string
-	MaxRecords            int // default should be -1
-	SkipRecords           int // default should be 0
-	Query                 map[string]string
+	Database                string
+	Layout                  string
+	Action                  FMAction
+	QueryFields             []FMQueryFieldGroup
+	SortFields              []FMSortField
+	RecordId                int // default should be -1
+	PreSortScript           string
+	PreFindScript           string
+	PostFindScript          string
+	PreSortScriptParam      string
+	PreFindScriptParam      string
+	PostFindScriptParam     string
+	ResponseLayout          string
+	ResponseFields          []string
+	MaxRecords              int // default should be -1
+	SkipRecords             int // default should be 0
+	Query                   map[string]string
 }
 
 func NewFMQuery(database string, layout string, action FMAction) *FMQuery {
@@ -162,24 +163,21 @@ func (q *FMQuery) WithSortFields(sortFields ...FMSortField) *FMQuery {
 	return q
 }
 
-func (q *FMQuery) WithPreSortScripts(scripts ...string) *FMQuery {
-	q.PreSortScripts = append(q.PreSortScripts, scripts...)
+func (q *FMQuery) WithPreSortScript(script, param string) *FMQuery {
+	q.PreSortScript = script
+	q.PreSortScriptParam = param
 	return q
 }
 
-func (q *FMQuery) WithPreFindScripts(scripts ...string) *FMQuery {
-	q.PreFindScripts = append(q.PreFindScripts, scripts...)
+func (q *FMQuery) WithPreFindScript(script, param string) *FMQuery {
+	q.PreFindScript = script
+	q.PreFindScriptParam = param
 	return q
 }
 
-func (q *FMQuery) WithPostFindScripts(scripts ...string) *FMQuery {
-	q.PostFindScripts = append(q.PostFindScripts, scripts...)
-	return q
-}
-
-func (q *FMQuery) WithScriptParams(delimiter string, params ...string) *FMQuery {
-	q.ScriptParams = append(q.ScriptParams, params...)
-	q.ScriptParamsDelimiter = delimiter
+func (q *FMQuery) WithPostFindScript(script, param string) *FMQuery {
+	q.PostFindScript = script
+	q.PostFindScriptParam = param
 	return q
 }
 
@@ -193,13 +191,15 @@ func (q *FMQuery) WithResponseFields(fields ...string) *FMQuery {
 	return q
 }
 
-func (q *FMQuery) WithMaxRecords(max int) *FMQuery {
-	q.MaxRecords = max
+// Max sets maximum amount of records to fetch
+func (q *FMQuery) Max(n int) *FMQuery {
+	q.MaxRecords = n
 	return q
 }
 
-func (q *FMQuery) WithSkipRecords(skip int) *FMQuery {
-	q.SkipRecords = skip
+// Skip skips n amount of recrods
+func (q *FMQuery) Skip(n int) *FMQuery {
+	q.SkipRecords = n
 	return q
 }
 
@@ -246,30 +246,31 @@ func (q *FMQuery) responseFieldsString() string {
 }
 
 func (q *FMQuery) scriptsString() string {
-	var preSortsArray []string
-	for _, s := range q.PreSortScripts {
-		preSortsArray = append(preSortsArray, "-script.presort="+url.QueryEscape(s))
-	}
-	var preFindsArray []string
-	for _, s := range q.PreFindScripts {
-		preFindsArray = append(preFindsArray, "-script.prefind="+url.QueryEscape(s))
-	}
-	var postFinds []string
-	for _, s := range q.PostFindScripts {
-		postFinds = append(postFinds, "-script="+url.QueryEscape(s))
-	}
-	return withAmp(strings.Join(preSortsArray, "&")) +
-		withAmp(strings.Join(preFindsArray, "&")) +
-		strings.Join(postFinds, "&")
+	preSort := "-script.presort="+url.QueryEscape(q.PreSortScript)
+	preFind := "-script.prefind="+url.QueryEscape(q.PreFindScript)
+	postFind := "-script="+url.QueryEscape(q.PostFindScript)
+
+	return withAmp(preSort) + withAmp(preFind) + postFind
 }
 
 func (q *FMQuery) scriptParamsString() string {
-	if len(q.ScriptParams) < 1 {
-		return ""
+	var preSort string
+	var preFind string
+	var postFind string
+
+	if len(q.PreSortScriptParam) > 0 {
+		preSort = fmt.Sprintf("-script.presort.param=%s", url.QueryEscape(q.PreSortScriptParam))
 	}
-	baseStr := "-script.param="
-	params := strings.Join(q.ScriptParams, q.ScriptParamsDelimiter)
-	return baseStr + url.QueryEscape(params)
+
+	if len(q.PreFindScriptParam) > 0 {
+		preFind = fmt.Sprintf("-script.prefind.param=%s", url.QueryEscape(q.PreFindScriptParam))
+	}
+
+	if len(q.PostFindScriptParam) > 0 {
+		postFind = fmt.Sprintf("-script.param=%s", url.QueryEscape(q.PostFindScriptParam))
+	}
+
+	return withAmp(preSort) + withAmp(preFind) + postFind
 }
 
 func (q *FMQuery) maxSkipString() string {
