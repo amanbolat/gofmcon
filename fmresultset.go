@@ -30,11 +30,11 @@ type FMError struct {
 }
 
 func (e *FMError) String() string {
-	return fmt.Sprintf("filemaker_error: %s", fileMakerErrorCodes[e.Code])
+	return fmt.Sprintf("filemaker_error: %s", FileMakerErrorCodes[e.Code])
 }
 
 func (e *FMError) Error() string {
-	return fmt.Sprintf("filemaker_error: %s", fileMakerErrorCodes[e.Code])
+	return fmt.Sprintf("filemaker_error: %s", FileMakerErrorCodes[e.Code])
 }
 
 type Resultset struct {
