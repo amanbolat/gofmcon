@@ -246,9 +246,18 @@ func (q *FMQuery) responseFieldsString() string {
 }
 
 func (q *FMQuery) scriptsString() string {
-	preSort := "-script.presort="+url.QueryEscape(q.PreSortScript)
-	preFind := "-script.prefind="+url.QueryEscape(q.PreFindScript)
-	postFind := "-script="+url.QueryEscape(q.PostFindScript)
+	var preSort string
+	if q.PreSortScript != "" {
+		preSort = "-script.presort="+url.QueryEscape(q.PreSortScript)
+	}
+	var preFind string
+	if q.PreFindScript != "" {
+		preFind = "-script.prefind="+url.QueryEscape(q.PreFindScript)
+	}
+	var postFind
+	if q.PostFindScript != "" {
+		postFind = "-script="+url.QueryEscape(q.PostFindScript)
+	}
 
 	return withAmp(preSort) + withAmp(preFind) + postFind
 }
