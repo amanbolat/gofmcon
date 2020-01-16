@@ -396,6 +396,12 @@ func (q *FMQuery) QueryString() string {
 			return startString +
 				withAmp(q.recordIdString()) + "-find"
 		}
+		if q.compoundQueryString() == "" || q.compoundFieldsString() == "" {
+			return startString +
+				withAmp(q.sortFieldsString()) +
+				withAmp(q.maxSkipString()) +
+				"-find"
+		}
 		return startString +
 			withAmp(q.sortFieldsString()) +
 			withAmp(q.maxSkipString()) +
