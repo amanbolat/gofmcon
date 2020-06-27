@@ -24,8 +24,12 @@ type FMResultset struct {
 }
 
 func (rs *FMResultset) prepareRecords() {
+	var fd FieldsDefinitions
+	if rs.MetaData != nil {
+		fd = rs.MetaData.getAllFieldDefinitions()
+	}
 	for _, r := range rs.Resultset.Records {
-		r.makeFieldsMap(false, rs.MetaData.getAllFieldDefinitions())
+		r.makeFieldsMap(false, fd)
 	}
 }
 
