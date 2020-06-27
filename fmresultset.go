@@ -58,6 +58,10 @@ func (md MetaData) getAllFieldDefinitions() []FieldDefinition {
 		definitions = append(definitions, *def)
 	}
 
+	if md.RelatedSetDefinition == nil {
+		return definitions
+	}
+
 	for _, def := range md.RelatedSetDefinition.FieldDefinitions {
 		definitions = append(definitions, *def)
 	}
