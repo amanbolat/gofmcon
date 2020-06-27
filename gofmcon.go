@@ -80,6 +80,14 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	}
 	defer res.Body.Close()
 
+	if res.StatusCode == 401 {
+		return resultSet, errors.New("gofmcon.Query: unauthorized")
+	}
+
+	if res.StatusCode < 200 || res.StatusCode > 299 {
+		return resultSet, errors.Errorf("gofmcon.Query: unknown error with status code: %d", res.StatusCode)
+	}
+
 	b, err := ioutil.ReadAll(res.Body)
 	if err != nil {
 		return resultSet, errors.WithMessage(err, "gofmcon.Query: error read response body")
@@ -94,7 +102,7 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 		return resultSet, errors.New(resultSet.FMError.String())
 	}
 
-	resultSet.Resultset.prepareRecords()
+	resultSet.prepareRecords()
 
 	return resultSet, nil
 }

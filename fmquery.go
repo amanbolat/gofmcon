@@ -368,7 +368,7 @@ func (q *FMQuery) compoundFieldsString() string {
 }
 
 func (q *FMQuery) QueryString() string {
-	var startString = q.dbLayString() + withAmp(q.responseLayoutString()) + withAmp(q.scriptsString()) + withAmp(q.scriptParamsString()) + withAmp(q.ResponseLayout)
+	var startString = q.dbLayString() + withAmp(q.responseLayoutString()) + withAmp(q.scriptsString()) + withAmp(q.scriptParamsString())
 	switch q.Action {
 	case Delete, Duplicate:
 		return startString +

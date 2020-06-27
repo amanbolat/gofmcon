@@ -17,12 +17,3 @@ func TestFieldsCount(t *testing.T) {
 	q := FMQuery{QueryFields: a}
 	assert.Equal(t, 15, q.fieldsCount(), "FMQuery fieldsCount is not correct")
 }
-
-func TestFMQuery_QueryString(t *testing.T) {
-	q := NewFMQuery("db", "layout", Edit)
-
-	q.PostFindScriptParams("|", "hello", "world")
-	q.WithPostFindScripts("audit_log")
-	t.Log(q.QueryString())
-}
-
