@@ -204,7 +204,7 @@ func (r *Record) makeFieldsMap(isNested bool, fieldsDefinitions FieldsDefinition
 			case TypeNumber:
 				number, err := strconv.ParseFloat(val, 64)
 				if err != nil {
-					dataArr = append(dataArr, val)
+					dataArr = append(dataArr, nil)
 				} else {
 					dataArr = append(dataArr, number)
 				}
