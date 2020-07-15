@@ -3,6 +3,7 @@ package gofmcon
 import (
 	"encoding/xml"
 	"github.com/pkg/errors"
+	"github.com/sirupsen/logrus"
 	"io/ioutil"
 	"net/http"
 	"net/url"
@@ -18,19 +19,24 @@ type FMConnector struct {
 	Port     string
 	Username string
 	Password string
-	Client *http.Client
+	Client   *http.Client
+	Debug    bool
 }
 
 func NewFMConnector(host string, port string, username string, password string) *FMConnector {
 	newConn := &FMConnector{
-		host,
-		port,
-		username,
-		password,
-		http.DefaultClient,
+		Host: host,
+		Port: port,
+		Username: username,
+		Password: password,
+		Client: http.DefaultClient,
 	}
 
 	return newConn
+}
+
+func (fmc *FMConnector) SetDebug(v bool) {
+	fmc.Debug = v
 }
 
 func (fmc *FMConnector) Ping() error {
@@ -53,7 +59,7 @@ func (fmc *FMConnector) Ping() error {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return  errors.New("gofmcon.Ping: FileMaker server unreachable")
+		return errors.New("gofmcon.Ping: FileMaker server unreachable")
 	}
 
 	return nil
@@ -80,17 +86,20 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	}
 	defer res.Body.Close()
 
+	b, err := ioutil.ReadAll(res.Body)
+	if err != nil {
+		return resultSet, errors.WithMessage(err, "gofmcon.Query: error read response body")
+	}
+
 	if res.StatusCode == 401 {
 		return resultSet, errors.New("gofmcon.Query: unauthorized")
 	}
 
 	if res.StatusCode < 200 || res.StatusCode > 299 {
+		if fmc.Debug {
+			logrus.Infof("gofmcon.Query unknown error: %s", string(b))
+		}
 		return resultSet, errors.Errorf("gofmcon.Query: unknown error with status code: %d", res.StatusCode)
-	}
-
-	b, err := ioutil.ReadAll(res.Body)
-	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon.Query: error read response body")
 	}
 
 	err = xml.Unmarshal(b, &resultSet)
