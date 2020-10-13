@@ -10,11 +10,15 @@ import (
 )
 
 const (
-	DATE_FORMAT = "01/02/2006"
-	TIME_FORMAT = "15:04:05"
-	TIMESTAMP_FORMAT = "01/02/2006 15:04:05"
+	// DateFormat is a format of date on a particular layout
+	DateFormat = "01/02/2006"
+	// TimeFormat is a format of time on a particular layout
+	TimeFormat = "15:04:05"
+	// TimestampFormat is a format of timestamp on a particular layout
+	TimestampFormat = "01/02/2006 15:04:05"
 )
 
+// FMResultset is a collection of ResultSets
 type FMResultset struct {
 	Resultset  *Resultset  `xml:"resultset"`
 	DataSource *DataSource `xml:"datasource"`
@@ -33,10 +37,12 @@ func (rs *FMResultset) prepareRecords() {
 	}
 }
 
+// HasError checks if FMResultset was fetched with an error
 func (rs *FMResultset) HasError() bool {
 	return rs.FMError.Code != 0
 }
 
+// DataSource store database name, layout name and time formats
 type DataSource struct {
 	Database        string `xml:"database,attr"`
 	DateFormat      string `xml:"date_format,attr"`
@@ -47,6 +53,7 @@ type DataSource struct {
 	TotalCount      int    `xml:"total-count,attr"`
 }
 
+// MetaData store fields' and related sets' meta information
 type MetaData struct {
 	FieldDefinitions     []*FieldDefinition    `xml:"field-definition"`
 	RelatedSetDefinition *RelatedSetDefinition `xml:"relatedset-definition"`
@@ -69,6 +76,7 @@ func (md MetaData) getAllFieldDefinitions() []FieldDefinition {
 	return definitions
 }
 
+// RelatedSetDefinition is a meta information of related set
 type RelatedSetDefinition struct {
 	Table            string             `xml:"table,attr"`
 	FieldDefinitions []*FieldDefinition `xml:"field-definition"`
@@ -87,17 +95,25 @@ type fieldDefinition struct {
 	Type          string `xml:"type,attr"`
 }
 
+// FieldType represents a type of the field
 type FieldType string
 
 const (
-	TypeText      FieldType = "text"
-	TypeNumber    FieldType = "number"
-	TypeDate      FieldType = "date"
-	TypeTime      FieldType = "time"
+	// TypeText is a text type of the field
+	TypeText FieldType = "text"
+	// TypeNumber is a number type of the field
+	TypeNumber FieldType = "number"
+	// TypeDate is a date type of the field
+	TypeDate FieldType = "date"
+	// TypeTime is a time type of the field
+	TypeTime FieldType = "time"
+	// TypeTimestamp is a timestamp type of the field
 	TypeTimestamp FieldType = "timestamp"
+	// TypeContainer is a container type of the field
 	TypeContainer FieldType = "container"
 )
 
+// FieldDefinition store information about a field in given layout
 type FieldDefinition struct {
 	Name          string `xml:"name,attr"`
 	AutoEnter     bool
@@ -110,6 +126,7 @@ type FieldDefinition struct {
 	Type          FieldType
 }
 
+// FieldsDefinitions is type of []FieldDefinition
 type FieldsDefinitions []FieldDefinition
 
 func (fds FieldsDefinitions) getType(name string) FieldType {
@@ -132,6 +149,7 @@ func (fds FieldsDefinitions) getMaxRepeat(name string) int {
 	return 1
 }
 
+// UnmarshalXML serializes xml data of FieldDefinition into the object
 func (f *FieldDefinition) UnmarshalXML(d *xml.Decoder, start xml.StartElement) error {
 	var fd fieldDefinition
 	err := d.DecodeElement(&fd, &start)
@@ -160,6 +178,7 @@ func getBoolFromString(str string) bool {
 	return false
 }
 
+// FMError represents a FileMaker error
 type FMError struct {
 	Code int `xml:"code,attr"`
 }
@@ -172,12 +191,14 @@ func (e *FMError) Error() string {
 	return fmt.Sprintf("filemaker_error: %s", FileMakerErrorCodes[e.Code])
 }
 
+// Resultset is a set of records with meta information
 type Resultset struct {
 	Count   int       `xml:"count,attr" json:"count"`
 	Fetched int       `xml:"fetch-size,attr" json:"fetched"`
 	Records []*Record `xml:"record"`
 }
 
+// Record is FileMaker record
 type Record struct {
 	ID         int      `xml:"record-id,attr"`
 	Fields     []*Field `xml:"field"`
@@ -185,6 +206,7 @@ type Record struct {
 	RelatedSet []*RelatedSet `xml:"relatedset"`
 }
 
+// RelatedSet is a set of records returned from FileMaker database
 type RelatedSet struct {
 	Count   int       `xml:"count,attr"`
 	Table   string    `xml:"table,attr"`
@@ -209,13 +231,13 @@ func (r *Record) makeFieldsMap(isNested bool, fieldsDefinitions FieldsDefinition
 					dataArr = append(dataArr, number)
 				}
 			case TypeDate:
-				t, _ := time.Parse(DATE_FORMAT, val)
+				t, _ := time.Parse(DateFormat, val)
 				dataArr = append(dataArr, t)
 			case TypeTime:
-				t, _ := time.Parse(TIME_FORMAT, val)
+				t, _ := time.Parse(TimeFormat, val)
 				dataArr = append(dataArr, t)
 			case TypeTimestamp:
-				t, _ := time.Parse(TIMESTAMP_FORMAT, val)
+				t, _ := time.Parse(TimestampFormat, val)
 				dataArr = append(dataArr, t)
 			default:
 				dataArr = append(dataArr, val)
@@ -228,7 +250,7 @@ func (r *Record) makeFieldsMap(isNested bool, fieldsDefinitions FieldsDefinition
 
 		if maxRepeat > 1 || len(dataArr) > 1 {
 			fieldData = dataArr
-		} else if len(dataArr) == 1{
+		} else if len(dataArr) == 1 {
 			fieldData = dataArr[0]
 		}
 
@@ -254,12 +276,15 @@ func (r *Record) makeFieldsMap(isNested bool, fieldsDefinitions FieldsDefinition
 	}
 }
 
+// Field stands for field in a record
 type Field struct {
 	Name string   `xml:"name,attr" json:"field"`
 	Data []string `xml:"data" json:"data"`
 	Type FieldType
 }
 
+// RelatedSetFromTable returns the set of related records from given
+// related table
 func (r *Record) RelatedSetFromTable(t string) *RelatedSet {
 	rSet := &RelatedSet{}
 	for _, elem := range r.RelatedSet {
@@ -275,7 +300,7 @@ func (r *Record) Field(name string) interface{} {
 	return r.fieldsMap[name]
 }
 
-func (r *Record) JsonFields() ([]byte, error) {
-	return  json.MarshalIndent(r.fieldsMap, "", "	")
+// JSONFields return JSON representation of Record
+func (r *Record) JSONFields() ([]byte, error) {
+	return json.MarshalIndent(r.fieldsMap, "", "	")
 }
-

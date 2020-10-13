@@ -8,19 +8,27 @@ import (
 )
 
 const (
-	fmNoRecordId = -1
+	fmNoRecordID = -1
 	fmAllRecords = -1
 )
 
+// FMAction is a type iof action can be done to the record
 type FMAction string
 
 const (
-	Find      FMAction = "-findquery"
-	FindAll   FMAction = "-findall"
-	FindAny   FMAction = "-findany"
-	New       FMAction = "-new"
-	Edit      FMAction = "-edit"
-	Delete    FMAction = "-delete"
+	// Find -findquery
+	Find FMAction = "-findquery"
+	// FindAll -findall
+	FindAll FMAction = "-findall"
+	// FindAny findany
+	FindAny FMAction = "-findany"
+	// New -new
+	New FMAction = "-new"
+	// Edit -edit
+	Edit FMAction = "-edit"
+	// Delete -delete
+	Delete FMAction = "-delete"
+	// Duplicate -dup
 	Duplicate FMAction = "-dup"
 )
 
@@ -28,36 +36,51 @@ func (a FMAction) String() string {
 	return string(a)
 }
 
+// FMSortOrder is a type of order
 type FMSortOrder string
 
 const (
-	Ascending  FMSortOrder = "ascend"
+	// Ascending -ascend
+	Ascending FMSortOrder = "ascend"
+	// Descending -descend
 	Descending FMSortOrder = "descend"
-	Custom     FMSortOrder = "custom"
+	// Custom -custom
+	Custom FMSortOrder = "custom"
 )
 
 func (so FMSortOrder) String() string {
 	return string(so)
 }
 
+// FMSortField is a field that should be sorted during the query
 type FMSortField struct {
 	Name  string
 	Order FMSortOrder
 }
 
+// FMFieldOp is type of operator for a FMField
 type FMFieldOp string
 
 const (
-	Equal            FMFieldOp = "eq"
-	Contains         FMFieldOp = "cn"
-	BeginsWith       FMFieldOp = "bw"
-	EndsWith         FMFieldOp = "ew"
-	GreaterThan      FMFieldOp = "gt"
+	// Equal -eq
+	Equal FMFieldOp = "eq"
+	// Contains -cn
+	Contains FMFieldOp = "cn"
+	// BeginsWith -bw
+	BeginsWith FMFieldOp = "bw"
+	// EndsWith -ew
+	EndsWith FMFieldOp = "ew"
+	// GreaterThan -gt
+	GreaterThan FMFieldOp = "gt"
+	// GreaterThanEqual -gte
 	GreaterThanEqual FMFieldOp = "gte"
-	LessThan         FMFieldOp = "lt"
-	LessThanEqual    FMFieldOp = "lte"
+	// LessThan -lt
+	LessThan FMFieldOp = "lt"
+	// LessThanEqual -lte
+	LessThanEqual FMFieldOp = "lte"
 )
 
+// FMQueryField is a field used in FMQuery
 type FMQueryField struct {
 	Name  string
 	Value string
@@ -87,14 +110,19 @@ func (qf *FMQueryField) valueWithOp() string {
 	}
 }
 
+// FMLogicalOp is a type for logical operators
 type FMLogicalOp string
 
 const (
+	// And operator
 	And FMLogicalOp = "and"
-	Or  FMLogicalOp = "or"
+	// Or operator
+	Or FMLogicalOp = "or"
+	// Not operator
 	Not FMLogicalOp = "not"
 )
 
+// FMQueryFieldGroup groups of fields used for the find request
 type FMQueryFieldGroup struct {
 	Op     FMLogicalOp
 	Fields []FMQueryField
@@ -108,47 +136,53 @@ func (fg *FMQueryFieldGroup) simpleFieldsString() string {
 	return strings.Join(strArray, "&")
 }
 
+// FMQuery represent the query you are sending to the server
 type FMQuery struct {
-	Database                string
-	Layout                  string
-	Action                  FMAction
-	QueryFields             []FMQueryFieldGroup
-	SortFields              []FMSortField
-	RecordId                int // default should be -1
-	PreSortScript           string
-	PreFindScript           string
-	PostFindScript          string
-	PreSortScriptParam      string
-	PreFindScriptParam      string
-	PostFindScriptParam     string
-	ResponseLayout          string
-	ResponseFields          []string
-	MaxRecords              int // default should be -1
-	SkipRecords             int // default should be 0
-	Query                   map[string]string
+	Database            string
+	Layout              string
+	Action              FMAction
+	QueryFields         []FMQueryFieldGroup
+	SortFields          []FMSortField
+	RecordID            int // default should be -1
+	PreSortScript       string
+	PreFindScript       string
+	PostFindScript      string
+	PreSortScriptParam  string
+	PreFindScriptParam  string
+	PostFindScriptParam string
+	ResponseLayout      string
+	ResponseFields      []string
+	MaxRecords          int // default should be -1
+	SkipRecords         int // default should be 0
+	Query               map[string]string
 }
 
+// NewFMQuery creates new FMQuery object
 func NewFMQuery(database string, layout string, action FMAction) *FMQuery {
 	return &FMQuery{
 		Database:    database,
 		Layout:      layout,
 		Action:      action,
-		RecordId:    fmNoRecordId,
+		RecordID:    fmNoRecordID,
 		MaxRecords:  fmAllRecords,
 		SkipRecords: 0,
 	}
 }
 
-func (q *FMQuery) WithRecordId(id int) *FMQuery {
-	q.RecordId = id
+// WithRecordID sets RecordID for the query.
+// MUST have if you want to edit/delete record
+func (q *FMQuery) WithRecordID(id int) *FMQuery {
+	q.RecordID = id
 	return q
 }
 
+// WithFieldGroups sets groups of fields for find request
 func (q *FMQuery) WithFieldGroups(fieldGroups ...FMQueryFieldGroup) *FMQuery {
 	q.QueryFields = append(q.QueryFields, fieldGroups...)
 	return q
 }
 
+// WithFields sets field for the find request
 func (q *FMQuery) WithFields(fields ...FMQueryField) *FMQuery {
 	group := FMQueryFieldGroup{
 		Fields: fields,
@@ -158,34 +192,40 @@ func (q *FMQuery) WithFields(fields ...FMQueryField) *FMQuery {
 	return q
 }
 
+// WithSortFields sets sort fields' name and order
 func (q *FMQuery) WithSortFields(sortFields ...FMSortField) *FMQuery {
 	q.SortFields = append(q.SortFields, sortFields...)
 	return q
 }
 
+// WithPreSortScript sets PreSortScript and params
 func (q *FMQuery) WithPreSortScript(script, param string) *FMQuery {
 	q.PreSortScript = script
 	q.PreSortScriptParam = param
 	return q
 }
 
+// WithPreFindScript sets PreFindScript and params
 func (q *FMQuery) WithPreFindScript(script, param string) *FMQuery {
 	q.PreFindScript = script
 	q.PreFindScriptParam = param
 	return q
 }
 
+// WithPostFindScript sets PostFindScript script and params
 func (q *FMQuery) WithPostFindScript(script, param string) *FMQuery {
 	q.PostFindScript = script
 	q.PostFindScriptParam = param
 	return q
 }
 
+// WithResponseLayout sets layout name you want to fetch records from
 func (q *FMQuery) WithResponseLayout(lay string) *FMQuery {
 	q.ResponseLayout = lay
 	return q
 }
 
+// WithResponseFields adds field names that FileMaker server should return
 func (q *FMQuery) WithResponseFields(fields ...string) *FMQuery {
 	q.ResponseFields = append(q.ResponseFields, fields...)
 	return q
@@ -248,15 +288,15 @@ func (q *FMQuery) responseFieldsString() string {
 func (q *FMQuery) scriptsString() string {
 	var preSort string
 	if q.PreSortScript != "" {
-		preSort = "-script.presort="+url.QueryEscape(q.PreSortScript)
+		preSort = "-script.presort=" + url.QueryEscape(q.PreSortScript)
 	}
 	var preFind string
 	if q.PreFindScript != "" {
-		preFind = "-script.prefind="+url.QueryEscape(q.PreFindScript)
+		preFind = "-script.prefind=" + url.QueryEscape(q.PreFindScript)
 	}
 	var postFind string
 	if q.PostFindScript != "" {
-		postFind = "-script="+url.QueryEscape(q.PostFindScript)
+		postFind = "-script=" + url.QueryEscape(q.PostFindScript)
 	}
 
 	return withAmp(preSort) + withAmp(preFind) + postFind
@@ -293,9 +333,9 @@ func (q *FMQuery) maxSkipString() string {
 	return "-skip=" + strconv.Itoa(q.SkipRecords) + "&" + maxString
 }
 
-func (q *FMQuery) recordIdString() string {
-	if q.RecordId != fmNoRecordId && q.Action != FindAny {
-		return "-recid=" + strconv.Itoa(q.RecordId)
+func (q *FMQuery) recordIDString() string {
+	if q.RecordID != fmNoRecordID && q.Action != FindAny {
+		return "-recid=" + strconv.Itoa(q.RecordID)
 	}
 	return ""
 }
@@ -367,16 +407,17 @@ func (q *FMQuery) compoundFieldsString() string {
 	return strings.Join(segments, "&")
 }
 
+// QueryString creates query string based on FMQuery
 func (q *FMQuery) QueryString() string {
 	var startString = q.dbLayString() + withAmp(q.responseLayoutString()) + withAmp(q.scriptsString()) + withAmp(q.scriptParamsString())
 	switch q.Action {
 	case Delete, Duplicate:
 		return startString +
-			withAmp(q.recordIdString()) +
+			withAmp(q.recordIDString()) +
 			q.Action.String()
 	case Edit:
 		return startString +
-			withAmp(q.recordIdString()) +
+			withAmp(q.recordIDString()) +
 			withAmp(q.simpleFieldsString()) +
 			q.Action.String()
 	case New:
@@ -392,9 +433,9 @@ func (q *FMQuery) QueryString() string {
 			withAmp(q.maxSkipString()) +
 			q.Action.String()
 	case Find:
-		if q.RecordId != fmNoRecordId {
+		if q.RecordID != fmNoRecordID {
 			return startString +
-				withAmp(q.recordIdString()) + "-find"
+				withAmp(q.recordIDString()) + "-find"
 		}
 		if q.compoundQueryString() == "" || q.compoundFieldsString() == "" {
 			return startString +
