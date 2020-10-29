@@ -3,7 +3,7 @@
 ## FileMaker Server connector for golang
 This library provide access to FileMaker Server using XML Web publishing
 
-This library is a port of https://github.com/PerfectlySoft/Perfect-FileMaker, but in golang.
+This library is a port of https://github.com/PerfectlySoft/Perfect-FileMaker on golang.
 
 ## In Production
 We use this lib in our company in production for some public APIs and feature migration to other DBs like Postgres.
@@ -12,34 +12,37 @@ It's some kind of bridge.
 API **could change** and sometimes might not be documented well. So look for commits and updates. 
 
 ## Tests
-FileMaker is not Postgres or MySQL so we cannot run docker and test it everywhere. May be we could run EC2 with Windows and installed FileMaker server on it.
+FileMaker is not Postgres or MySQL, so we cannot run docker and test automatically. Maybe we could run EC2 with Windows and install FileMaker Server on it.
 If you have any ideas, open new issue or contact me.
 
-## Install
+## Installation
 
 ```
 go get github.com/amanbolat/gofmcon
 ```
-then in your code 
+Then add the line below in your code 
 ```go
 import "github.com/amanbolat/gofmcon"
 ```
 
 ## Example
 
-
 In main.go
 ```go
 package main
 
 import (
-    fm "github.com/amanbolat/gofmcon"
+    "encoding/json"
+fm "github.com/amanbolat/gofmcon"
     "log"
     "github.com/kelseyhightower/envconfig"
     "fmt"
     "errors"
 )
 
+// config represents all the configuration we need in order to
+// create a new FMConnector and establish the connection with 
+// FileMaker database 
 type config struct {
     FmHost          string `split_words:"true" required:"true"`
     FmUser          string `split_words:"true" required:"true"`
@@ -54,9 +57,9 @@ type postStore struct {
 }
 
 type Post struct {
-    Author string
-    Title string
-    Content string
+    Author string `json:"Author"`
+    Title string `json:"Title"`
+    Content string `json:"Content"`
 }
 
 func (p *Post) Populate(record *fm.Record) {
@@ -83,37 +86,40 @@ func main() {
     fmt.Print(posts)
 }
 
-func (ps *postStore) GetAllPosts(conn *fm.FMConnector) (*[]Post, error) {
+func (ps *postStore) GetAllPosts() ([]Post, error) {
 	var posts []Post
 
-	q := fm.NewFMQuery(ps.dbName, "Posts_list", fm.FindAll)  // Create query
-	fmset, err := ps.fmConn.Query(q)                        // Make request with query
-	if err != nil {                                         // Check for errors
-		return &posts, errors.New("Failed get posts: " + err.Error())
+	q := fm.NewFMQuery(ps.dbName, "posts_list_layout", fm.FindAll)
+	fmset, err := ps.fmConn.Query(q)                        
+	if err != nil {                                         
+		return posts, errors.New("failed to get posts")
 	}
 
-	for _, r := range fmset.Resultset.Records[0:] {         // Iterate through records
+    // Populate it with record
+	for _, r := range fmset.Resultset.Records { 
 		p := Post{}
-		p.Populate(&r)                                      // Populate it with record
+        
+		b, _ := r.JsonFields()
+        _ = json.Unmarshal(b, &p)
 		posts = append(posts, p)
 	}
 
-	return &posts, nil                                      // Return posts
+	return posts, nil
 }
 ```
 
 
-### Get single record
+### Get a single record
 ```go
     q := fm.NewFMQuery(databaseName, layout_name, fm.Find)
     q.WithFields(
         fm.FMQueryField{Name: "field_name", Value: "001", Op: fm.Equal},
-    ).WithMaxRecords(1)
+    ).Max(1)
 ```
 
-### Get FileMaker error
+### Check for FileMaker internal error
 ```go
-    fmSet, err := r.conn.Query(q)
+    fmSet, err := fmConn.Query(q)
     if err != nil {
         if err.Error() == fmt.Sprintf("FileMaker_error: %s", fm.FileMakerErrorCodes[401]) {
             // your code
@@ -153,21 +159,12 @@ Your object should have FileMaker record id to update record in database. Please
 
 ### Use some script
 ```go
-    // SCRIPT_DELIMITER can be '|', '_' or any other symbol for
-    // On FileMaker side input should be parsed to get every parameter
-    // that is why we need delimiter
-    q.WithPostFindScripts("script_name")
-    q.WithScriptParams(SCRIPT_DELIMITER, param_1, param_2, param_3)
+    // SCRIPT_DELIMITER can be '|', '_' or any other symbol that will be
+    // parsed on FileMaker side to get all the parameters from the string
+    q.WithPostFindScripts(SCRIPT_NAME, strings.Join([]string{param_1, param_2, param_3}, SCRIPT_DELIMITER))
 ```
-
-### Container fields
-You should use `ContainerField` method to get slice of container field urls(image, file...) or it could be base64 encoded content.
-```go
-    containerURLs := append(containerURLs, fmRecord.ContainerField("container_field_name")...)
-```
-
 
 #TODO
 
-- [ ] Add tests
+- [ x ] Add tests
 - [ ] Add methods to get information about database and layouts
