@@ -164,7 +164,7 @@ Your object should have FileMaker record id to update record in database. Please
     q.WithPostFindScripts(SCRIPT_NAME, strings.Join([]string{param_1, param_2, param_3}, SCRIPT_DELIMITER))
 ```
 
-#TODO
+## TODO
 
-- [ x ] Add tests
-- [ ] Add methods to get information about database and layouts
+- [x] Add tests
+- [x] Add methods to get information about database and layouts
