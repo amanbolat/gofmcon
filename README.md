@@ -1,106 +1,112 @@
 [![Go Report Card](https://goreportcard.com/badge/github.com/amanbolat/gofmcon)](https://goreportcard.com/report/github.com/amanbolat/gofmcon)
 
-## FileMaker Server connector for golang
-This library provide access to FileMaker Server using XML Web publishing
+# About
 
-This library is a port of https://github.com/PerfectlySoft/Perfect-FileMaker on golang.
+This library provides access to FileMaker Server using XML Web publishing.
+
+Initially the library was a port of https://github.com/PerfectlySoft/Perfect-FileMaker, but it evolved a lot since.
 
 ## In Production
-We use this lib in our company in production for some public APIs and feature migration to other DBs like Postgres.
-It's some kind of bridge.
 
-API **could change** and sometimes might not be documented well. So look for commits and updates. 
+The library is used in production to proxy the calls from API server to FileMaker database.
 
 ## Tests
-FileMaker is not Postgres or MySQL, so we cannot run docker and test automatically. Maybe we could run EC2 with Windows and install FileMaker Server on it.
-If you have any ideas, open new issue or contact me.
+
+FileMaker differs Postgres or MySQL, so we cannot run docker and test the library in CI/CD. Maybe we could run EC2 with
+Windows and install FileMaker Server on it to run the integration test, yet it seems a bit overkill and very
+time-consuming at this moment.
 
 ## Installation
+
+Run the command below in the root directory of your project:
 
 ```
 go get github.com/amanbolat/gofmcon
 ```
-Then add the line below in your code 
+
+Then import the lib in your code:
+
 ```go
 import "github.com/amanbolat/gofmcon"
 ```
 
-## Example
+## Examples
 
-In main.go
+**Full example**
+
 ```go
 package main
 
 import (
-    "encoding/json"
-fm "github.com/amanbolat/gofmcon"
-    "log"
-    "github.com/kelseyhightower/envconfig"
-    "fmt"
-    "errors"
+	"encoding/json"
+	fm "github.com/amanbolat/gofmcon"
+	"log"
+	"github.com/kelseyhightower/envconfig"
+	"fmt"
+	"errors"
 )
 
 // config represents all the configuration we need in order to
 // create a new FMConnector and establish the connection with 
 // FileMaker database 
 type config struct {
-    FmHost          string `split_words:"true" required:"true"`
-    FmUser          string `split_words:"true" required:"true"`
-    FmPort          string `split_words:"true" required:"true"`
-    FmDatabaseName  string `split_words:"true" required:"true"`
-    FmPass          string `split_words:"true" required:"true"`
+	FmHost         string `split_words:"true" required:"true"`
+	FmUser         string `split_words:"true" required:"true"`
+	FmPort         string `split_words:"true" required:"true"`
+	FmDatabaseName string `split_words:"true" required:"true"`
+	FmPass         string `split_words:"true" required:"true"`
 }
 
 type postStore struct {
-    fmConn *fm.FMConnector
-    dbName string
+	fmConn *fm.FMConnector
+	dbName string
 }
 
 type Post struct {
-    Author string `json:"Author"`
-    Title string `json:"Title"`
-    Content string `json:"Content"`
+	Author  string `json:"Author"`
+	Title   string `json:"Title"`
+	Content string `json:"Content"`
 }
 
 func (p *Post) Populate(record *fm.Record) {
-    p.Author = record.Field("author")
-    p.Title = record.Field("title")
-    p.Content = record.Field("content")
+	p.Author = record.Field("author")
+	p.Title = record.Field("title")
+	p.Content = record.Field("content")
 }
 
 func main() {
-    var conf = &config{}
-    err := envconfig.Process("", conf)
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    fmConn := fm.NewFMConnector(conf.FmHost, conf.FmPort, conf.FmUser, conf.FmPass)
-    store := postStore{fmConn: fmConn, dbName: conf.FmDatabaseName}
-    
-    posts, err := store.GetAllPosts(fmConn)
-    if err != nil {                                    
-        log.Fatal(err)
-    }
-    
-    fmt.Print(posts)
+	var conf = &config{}
+	err := envconfig.Process("", conf)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmConn := fm.NewFMConnector(conf.FmHost, conf.FmPort, conf.FmUser, conf.FmPass)
+	store := postStore{fmConn: fmConn, dbName: conf.FmDatabaseName}
+
+	posts, err := store.GetAllPosts(fmConn)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	fmt.Print(posts)
 }
 
 func (ps *postStore) GetAllPosts() ([]Post, error) {
 	var posts []Post
 
 	q := fm.NewFMQuery(ps.dbName, "posts_list_layout", fm.FindAll)
-	fmset, err := ps.fmConn.Query(q)                        
-	if err != nil {                                         
+	fmset, err := ps.fmConn.Query(q)
+	if err != nil {
 		return posts, errors.New("failed to get posts")
 	}
 
-    // Populate it with record
-	for _, r := range fmset.Resultset.Records { 
+	// Populate it with record
+	for _, r := range fmset.Resultset.Records {
 		p := Post{}
-        
+
 		b, _ := r.JsonFields()
-        _ = json.Unmarshal(b, &p)
+		_ = json.Unmarshal(b, &p)
 		posts = append(posts, p)
 	}
 
@@ -108,8 +114,8 @@ func (ps *postStore) GetAllPosts() ([]Post, error) {
 }
 ```
 
+**Get a single record**
 
-### Get a single record
 ```go
     q := fm.NewFMQuery(databaseName, layout_name, fm.Find)
     q.WithFields(
@@ -117,7 +123,8 @@ func (ps *postStore) GetAllPosts() ([]Post, error) {
     ).Max(1)
 ```
 
-### Check for FileMaker internal error
+**Check if the error is FileMaker specific one**
+
 ```go
     fmSet, err := fmConn.Query(q)
     if err != nil {
@@ -129,8 +136,8 @@ func (ps *postStore) GetAllPosts() ([]Post, error) {
     }
 ```
 
+**Create a record**
 
-### Create record
 ```go
     q := fm.NewFMQuery(databaseName, layout_name, fm.New)
     q.WithFields(
@@ -140,14 +147,16 @@ func (ps *postStore) GetAllPosts() ([]Post, error) {
     fmSet, err := fmConn.Query(q)
 ```
 
+**Sort the records**
 
-### Sort by some field
 ```go
     q.WithSortFields(fm.FMSortField{Name: "some_field", Order: fm.Descending})
 ```
 
-### Update record
+**Update a record**
+
 Your object should have FileMaker record id to update record in database. Please see more in FileMaker documentation.
+
 ```go
     q := fm.NewFMQuery(databaseName, layout_name, fm.Edit)
     q.WithFields(
@@ -156,8 +165,8 @@ Your object should have FileMaker record id to update record in database. Please
     q.WithRecordId(updated_object.FMRecordID)
 ```
 
+**Run a script**
 
-### Use some script
 ```go
     // SCRIPT_DELIMITER can be '|', '_' or any other symbol that will be
     // parsed on FileMaker side to get all the parameters from the string
