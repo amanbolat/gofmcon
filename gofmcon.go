@@ -1,6 +1,7 @@
 package gofmcon
 
 import (
+	"context"
 	"encoding/xml"
 	"fmt"
 	"io"
@@ -75,11 +76,11 @@ func (fmc *FMConnector) Ping() error {
 
 // Query fetches FMResultset from FileMaker server depending on FMQuery
 // given to it
-func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
+func (fmc *FMConnector) Query(ctx context.Context, q *FMQuery) (FMResultset, error) {
 	resultSet := FMResultset{}
 	queryURL := fmc.makeURL(q)
 
-	request, err := http.NewRequest("GET", queryURL, nil)
+	request, err := http.NewRequestWithContext(ctx, "GET", queryURL, nil)
 	if err != nil {
 		return resultSet, fmt.Errorf("gofmcon.Query: error create request: %w", err)
 	}
