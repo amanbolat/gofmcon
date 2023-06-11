@@ -108,7 +108,7 @@ func (fmc *FMConnector) Query(ctx context.Context, q *FMQuery) (FMResultset, err
 	}
 
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		return resultSet, fmt.Errorf("gofmcon.Query: unknown error with status code: %d", res.StatusCode)
+		return resultSet, fmt.Errorf("gofmcon.Query: unknown error with status code: %d, %s", res.StatusCode, string(b))
 	}
 
 	err = xml.Unmarshal(b, &resultSet)
