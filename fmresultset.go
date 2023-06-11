@@ -76,7 +76,7 @@ func (md MetaData) getAllFieldDefinitions() []FieldDefinition {
 	return definitions
 }
 
-// RelatedSetDefinition is a meta information of related set
+// RelatedSetDefinition is meta information of related set
 type RelatedSetDefinition struct {
 	Table            string             `xml:"table,attr"`
 	FieldDefinitions []*FieldDefinition `xml:"field-definition"`

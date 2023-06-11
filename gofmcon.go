@@ -2,11 +2,12 @@ package gofmcon
 
 import (
 	"encoding/xml"
-	"github.com/pkg/errors"
-	"github.com/sirupsen/logrus"
-	"io/ioutil"
+	"fmt"
+	"io"
 	"net/http"
 	"net/url"
+
+	"errors"
 )
 
 const (
@@ -54,7 +55,7 @@ func (fmc *FMConnector) Ping() error {
 	newURL.RawQuery = newURL.Query().Encode() + "&" + FMDBNames
 	request, err := http.NewRequest("GET", newURL.String(), nil)
 	if err != nil {
-		return errors.WithMessage(err, "gofmcon.Ping: error create request")
+		return fmt.Errorf("gofmcon.Ping: error create request: %w", err)
 	}
 	request.SetBasicAuth(fmc.Username, fmc.Password)
 	request.Header.Set("User-Agent", "Golang FileMaker Connector")
@@ -66,7 +67,7 @@ func (fmc *FMConnector) Ping() error {
 	defer res.Body.Close()
 
 	if res.StatusCode != 200 {
-		return errors.New("gofmcon.Ping: FileMaker server unreachable")
+		return fmt.Errorf("gofmcon.Ping: FileMaker server unreachable, status code: %d", res.StatusCode)
 	}
 
 	return nil
@@ -80,7 +81,7 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	request, err := http.NewRequest("GET", queryURL, nil)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon.Query: error create request")
+		return resultSet, fmt.Errorf("gofmcon.Query: error create request: %w", err)
 	}
 	request.Header.Set("User-Agent", "Golang FileMaker Connector")
 	request.SetBasicAuth(fmc.Username, fmc.Password)
@@ -91,13 +92,14 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 
 	res, err := fmc.Client.Do(request)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon.Query: error http request")
+		return resultSet, fmt.Errorf("gofmcon.Query: error http request: %w", err)
+
 	}
 	defer res.Body.Close()
 
-	b, err := ioutil.ReadAll(res.Body)
+	b, err := io.ReadAll(res.Body)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon.Query: error read response body")
+		return resultSet, fmt.Errorf("gofmcon.Query: error read response body: %w", err)
 	}
 
 	if res.StatusCode == 401 {
@@ -105,15 +107,12 @@ func (fmc *FMConnector) Query(q *FMQuery) (FMResultset, error) {
 	}
 
 	if res.StatusCode < 200 || res.StatusCode > 299 {
-		if fmc.Debug {
-			logrus.Infof("gofmcon.Query unknown error: %s", string(b))
-		}
-		return resultSet, errors.Errorf("gofmcon.Query: unknown error with status code: %d", res.StatusCode)
+		return resultSet, fmt.Errorf("gofmcon.Query: unknown error with status code: %d", res.StatusCode)
 	}
 
 	err = xml.Unmarshal(b, &resultSet)
 	if err != nil {
-		return resultSet, errors.WithMessage(err, "gofmcon.Query: error unmarshal xml")
+		return resultSet, fmt.Errorf("gofmcon.Query: error unmarshal xml: %w", err)
 	}
 
 	if resultSet.HasError() {

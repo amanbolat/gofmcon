@@ -1,6 +1,6 @@
 module github.com/amanbolat/gofmcon
 
-go 1.14
+go 1.20
 
 require (
 	github.com/pkg/errors v0.8.1
