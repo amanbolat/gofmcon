@@ -48,13 +48,13 @@ func (fmc *FMConnector) SetDebug(v bool) {
 
 // Ping sends a simple request querying all available databases
 // in order to check connection and credentials
-func (fmc *FMConnector) Ping() error {
+func (fmc *FMConnector) Ping(ctx context.Context) error {
 	var newURL = &url.URL{}
 	newURL.Scheme = "http"
 	newURL.Host = fmc.Host
 	newURL.Path = fmiPath
 	newURL.RawQuery = newURL.Query().Encode() + "&" + FMDBNames
-	request, err := http.NewRequest("GET", newURL.String(), nil)
+	request, err := http.NewRequestWithContext(ctx, "GET", newURL.String(), nil)
 	if err != nil {
 		return fmt.Errorf("gofmcon.Ping: error create request: %w", err)
 	}
